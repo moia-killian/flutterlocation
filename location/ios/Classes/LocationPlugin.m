@@ -121,29 +121,12 @@
         if ([CLLocationManager locationServicesEnabled]) {
             result(@1);
         } else {
-#if TARGET_OS_OSX
-            NSAlert *alert = [[NSAlert alloc] init];
-            [alert setMessageText:@"Location is Disabled"];
-            [alert setInformativeText:@"To use location, go to your System Preferences > Security & Privacy > Privacy > Location Services."];
-            [alert addButtonWithTitle:@"Open"];
-            [alert addButtonWithTitle:@"Cancel"];
-            [alert beginSheetModalForWindow:NSApplication.sharedApplication.mainWindow
-                          completionHandler:^(NSModalResponse returnCode) {
-                if (returnCode == NSAlertFirstButtonReturn) {
-                    NSString *urlString = @"x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices";
-                    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:urlString]];
-                } else {
-                    NSLog(@"Cancel");
-                }
-            }];
-#else
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Location is Disabled"
                 message:@"To use location, go to your Settings App > Privacy > Location Services."
                 delegate:self
                 cancelButtonTitle:@"Cancel"
                 otherButtonTitles:nil];
             [alert show];
-#endif
             result(@0);
         }
     } else {
@@ -153,20 +136,12 @@
 
 
 -(void) requestPermission {
-#if TARGET_OS_OSX
-    if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"] != nil) {
-        if (@available(macOS 10.15, *)) {
-            [self.clLocationManager requestAlwaysAuthorization];
-        }
-    }
-#else
     if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationWhenInUseUsageDescription"] != nil) {
         [self.clLocationManager requestWhenInUseAuthorization];
     }
     else if ([[NSBundle mainBundle] objectForInfoDictionaryKey:@"NSLocationAlwaysUsageDescription"] != nil) {
         [self.clLocationManager requestAlwaysAuthorization];
     }
-#endif
     else {
         [NSException raise:NSInternalInconsistencyException format:
             @"To use location in iOS8 and above you need to define either "
@@ -178,24 +153,13 @@
 -(BOOL) isPermissionGranted {
     BOOL isPermissionGranted = NO;
     CLAuthorizationStatus status = [CLLocationManager authorizationStatus];
-    
-#if TARGET_OS_OSX
-    if (status == kCLAuthorizationStatusAuthorized) {
-        // Location services are available
-        isPermissionGranted = YES;
-    } else if (@available(macOS 10.12, *)) {
-        if (status == kCLAuthorizationStatusAuthorizedAlways) {
-            // Location services are available
-            isPermissionGranted = YES;
-        }
-    }
-#else //if TARGET_OS_IOS
+
     if (status == kCLAuthorizationStatusAuthorizedWhenInUse ||
        status == kCLAuthorizationStatusAuthorizedAlways) {
         // Location services are available
         isPermissionGranted = YES;
     }
-#endif
+
     else if (status == kCLAuthorizationStatusDenied ||
        status == kCLAuthorizationStatusRestricted) {
         // Location services are requested but user has denied / the app is restricted from
@@ -269,31 +233,6 @@
             self.flutterResult(@0);
         }
     }
-#if TARGET_OS_OSX
-    else if (status == kCLAuthorizationStatusAuthorized) {
-        NSLog(@"User granted permissions");
-        if (self.permissionWanted) {
-            self.permissionWanted = NO;
-            self.flutterResult(@1);
-        }
-
-        if (self.locationWanted || self.flutterListening) {
-            [self.clLocationManager startUpdatingLocation];
-        }
-    } else if (@available(macOS 10.12, *)) {
-        if (status == kCLAuthorizationStatusAuthorizedAlways) {
-            NSLog(@"User granted permissions");
-            if (self.permissionWanted) {
-                self.permissionWanted = NO;
-                self.flutterResult(@1);
-            }
-
-            if (self.locationWanted || self.flutterListening) {
-                [self.clLocationManager startUpdatingLocation];
-            }
-        }
-    }
-#else //if TARGET_OS_IOS
     else if (status == kCLAuthorizationStatusAuthorizedWhenInUse ||
         status == kCLAuthorizationStatusAuthorizedAlways) {
         NSLog(@"User granted permissions");
@@ -306,7 +245,6 @@
             [self.clLocationManager startUpdatingLocation];
         }
     }
-#endif
 }
 
 
