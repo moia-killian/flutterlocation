@@ -16,10 +16,6 @@ flutter:
         pluginClass: LocationPlugin
       ios:
         pluginClass: LocationPlugin
-      macos:
-        pluginClass: LocationPlugin
-      web:
-        default_package: location_web
 
 dependencies:
   flutter:
