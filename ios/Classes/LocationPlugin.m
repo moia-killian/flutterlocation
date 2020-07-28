@@ -41,7 +41,7 @@
 }
 
 -(void)initLocation {
-    if (self.locationManager == nil) {
+    if (self.clLocationManager == nil) {
         self.clLocationManager = [[CLLocationManager alloc] init];
         self.clLocationManager.delegate = self;
         self.clLocationManager.desiredAccuracy = kCLLocationAccuracyBest;
